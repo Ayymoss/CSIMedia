@@ -1,26 +1,26 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using CSIMedia.Models;
+using CSIMedia.Services;
 
 namespace CSIMedia.Controllers;
 
-public class HomeController : Controller
+public class HomeController(NumberHandlerService numberHandlerService) : Controller
 {
-    private readonly ILogger<HomeController> _logger;
-
-    public HomeController(ILogger<HomeController> logger)
+    public async Task<IActionResult> Index(bool error = false, string? message = null)
     {
-        _logger = logger;
+        var numbers = await numberHandlerService.GetNumbersAsync();
+        return View(new IndexModel
+        {
+            Numbers = numbers,
+            ValidationResult = (error, message)
+        });
     }
 
-    public IActionResult Index()
+    public async Task<IActionResult> SubmitNumbers(UserInputModel userInputModel)
     {
-        return View();
-    }
-
-    public IActionResult Privacy()
-    {
-        return View();
+        var result = await numberHandlerService.AddNumbers(userInputModel);
+        return RedirectToAction("Index", "Home", new {result.Error, result.Message});
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
